@@ -2,16 +2,24 @@
 session_start();
 include '../db_connection.php'; // Conexión a la base de datos
 
+
 if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit();
 }
 
-$id_mascota = $_GET['id_mascota'];
 
+$id_mascota = filter_input(INPUT_GET, 'id_mascota', FILTER_VALIDATE_INT);
+
+if (!$id_mascota) {
+    echo "<p style='color:red;'>ID de mascota inválido.</p>";
+    exit();
+}
+
+// Procesar el formulario solo si se envió por POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nombre_truco = $_POST['nombre_truco'];
-    $progreso = $_POST['progreso'];
+    $nombre_truco = trim($_POST['nombre_truco']);
+    $progreso = trim($_POST['progreso']);
 
     if (empty($nombre_truco)) {
         echo "<p style='color:red;'>El nombre del truco no puede estar vacío.</p>";
@@ -21,8 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if ($stmt->execute()) {
             echo "<p style='color:green;'>Habilidad registrada exitosamente.</p>";
-            echo "<a href='ver_habilidades.php?id_mascota=$id_mascota'><button>Volver a Ver Habilidades</button></a>";
-            echo "<a href='registro_habilidad.php?id_mascota=$id_mascota'><button>Registrar Nueva Habilidad</button></a>";
+            echo "<a href='ver_habilidades.php?id_mascota=" . htmlspecialchars($id_mascota) . "'><button>Volver a Ver Habilidades</button></a>";
+            echo "<a href='registro_habilidad.php?id_mascota=" . htmlspecialchars($id_mascota) . "'><button>Registrar Nueva Habilidad</button></a>";
         } else {
             echo "<p style='color:red;'>Error al registrar la habilidad.</p>";
         }
@@ -51,6 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="submit" value="Registrar Habilidad">
     </form>
     <br>
-    <a href="ver_habilidades.php?id_mascota=<?php echo $id_mascota; ?>">Volver a Ver Habilidades</a>
+    <a href="ver_habilidades.php?id_mascota=<?php echo htmlspecialchars($id_mascota); ?>">Volver a Ver Habilidades</a>
 </body>
 </html>

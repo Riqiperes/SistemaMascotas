@@ -7,14 +7,14 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 
-if (!isset($_GET['id_mascota'])) {
-    echo "<p style='color:red;'>No se ha especificado ninguna mascota.</p>";
+
+if (!isset($_GET['id_mascota']) || !filter_var($_GET['id_mascota'], FILTER_VALIDATE_INT)) {
+    echo "<p style='color:red;'>ID de mascota no válido o no especificado.</p>";
     exit();
 }
+$id_mascota = intval($_GET['id_mascota']); 
 
-$id_mascota = $_GET['id_mascota'];
 
-// Verificar si la mascota pertenece al usuario autenticado
 list($nombre, $apellido) = explode(" ", $_SESSION['usuario']);
 $stmt = $conn->prepare("SELECT * FROM mascotas WHERE id = ? AND nombre_dueno = ? AND apellido_dueno = ?");
 $stmt->bind_param("iss", $id_mascota, $nombre, $apellido);
@@ -32,7 +32,6 @@ $stmt->bind_param("i", $id_mascota);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -63,12 +62,12 @@ $result = $stmt->get_result();
         echo "<p>No hay habilidades registradas para esta mascota.</p>";
     } else {
         while ($row = $result->fetch_assoc()) {
-            echo "<div id='habilidad-" . $row['id'] . "'>";
+            echo "<div id='habilidad-" . htmlspecialchars($row['id']) . "'>";
             echo "<p><strong>Truco:</strong> " . htmlspecialchars($row['nombre_truco']);
             echo "<br><strong>Progreso:</strong> " . htmlspecialchars($row['progreso']);
             echo "<br><strong>Estado:</strong> " . ($row['dominado'] ? "Dominada" : "En progreso");
-            echo "<br><a href='editar_habilidad.php?id=" . $row['id'] . "&id_mascota=" . $id_mascota . "'>Editar</a> | ";
-            echo "<a href='#' onclick='eliminarHabilidad(" . $row['id'] . ")'>Eliminar</a></p>";
+            echo "<br><a href='editar_habilidad.php?id=" . htmlspecialchars($row['id']) . "&id_mascota=" . htmlspecialchars($id_mascota) . "'>Editar</a> | ";
+            echo "<a href='#' onclick='eliminarHabilidad(" . htmlspecialchars($row['id']) . ")'>Eliminar</a></p>";
             echo "</div><hr>";
         }
     }
@@ -77,6 +76,6 @@ $result = $stmt->get_result();
     $conn->close();
     ?>
     <a href="../ver_mascotas.php"><button>Volver a Ver Mascotas</button></a>
-    <a href="registro_habilidad.php?id_mascota=<?php echo $id_mascota; ?>"><button>Registrar Nueva Habilidad</button></a>
+    <a href="registro_habilidad.php?id_mascota=<?php echo htmlspecialchars($id_mascota); ?>"><button>Registrar Nueva Habilidad</button></a>
 </body>
 </html>
